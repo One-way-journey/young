@@ -1,0 +1,389 @@
+openCV的学习：
+http://blog.csdn.net/column/details/opencv-tutorial.html
+
+day0
+opencv项目配置
+1、在新出现的“属性管理器”工作区中，点击项目->Debug|Win32->Microsoft.Cpp.Win32.userDirectories（右键属性，或者双击）即可打开属性页面。
+2、打开属性页面后，就是一番配置了。首先是在【通用属性】 ->【VC++目录】 ->【包含目录】中添加上
+D:\Program Files\opencv\build\include
+D:\Program Files\opencv\build\include\opencv
+D:\Program Files\opencv\build\include\opencv2 这三个目录。
+3、在【通用属性】 ->【VC++目录】 ->【库目录】中，添加上D:\Program Files\opencv\build\x86\vc10\lib这个路径
+4、通用属性】 ->【链接器】->【输入】->【附加的依赖项】
+对于【OpenCV2.4.9】，添加如下249版本的lib（这样的lib顺序是：19个带d的debug版的lib写在前面，19个不带d的release版的lib写在后面）：
+
+
+opencv_ml249d.lib
+opencv_calib3d249d.lib
+opencv_contrib249d.lib
+opencv_core249d.lib
+opencv_features2d249d.lib
+opencv_flann249d.lib
+opencv_gpu249d.lib
+opencv_highgui249d.lib
+opencv_imgproc249d.lib
+opencv_legacy249d.lib
+opencv_objdetect249d.lib
+opencv_ts249d.lib
+opencv_video249d.lib
+opencv_nonfree249d.lib
+opencv_ocl249d.lib
+opencv_photo249d.lib
+opencv_stitching249d.lib
+opencv_superres249d.lib
+opencv_videostab249d.lib
+
+opencv_objdetect249.lib
+opencv_ts249.lib
+opencv_video249.lib
+opencv_nonfree249.lib
+opencv_ocl249.lib
+opencv_photo249.lib
+opencv_stitching249.lib
+opencv_superres249.lib
+opencv_videostab249.lib
+opencv_calib3d249.lib
+opencv_contrib249.lib
+opencv_core249.lib
+opencv_features2d249.lib
+opencv_flann249.lib
+opencv_gpu249.lib
+opencv_highgui249.lib
+opencv_imgproc249.lib
+opencv_legacy249.lib
+opencv_ml249.lib
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+day 1
+
+1、	OpenCV中的C++类和函数都是定义在命名空间cv之内
+
+2、	cv::Mat类是用于保存图像以及其他矩阵数据的数据结构。默认情况下，其尺寸为0，我们也可以指定初始尺寸,
+比如，定义一个Mat类对象，就要写cv::Mat pic(320,640,cv::Scalar(100));
+
+3、imread函数
+Mat imread(const string& filename, intflags=1 );		第一个参数，const string&类型的filename，填我们需要载入的图片路径名。
+第二个参数，int类型的flags，为载入标识，它指定一个加载图像的颜色类型。可以看到它自带缺省值1.所以有时候这个参数在调用时我们可以忽略，
+在看了下面的讲解之后，我们就会发现，如果在调用时忽略这个参数，就表示载入三通道的彩色图像。
+可以在OpenCV中标识图像格式的枚举体中取值。
+    enum  
+    {  
+    /* 8bit, color or not */  
+       CV_LOAD_IMAGE_UNCHANGED  =-1,  
+    /* 8bit, gray */  
+       CV_LOAD_IMAGE_GRAYSCALE  =0,  
+    /* ?, color */  
+       CV_LOAD_IMAGE_COLOR      =1,  
+    /* any depth, ? */  
+       CV_LOAD_IMAGE_ANYDEPTH   =2,  
+    /* ?, any color */  
+       CV_LOAD_IMAGE_ANYCOLOR   =4  
+    };  
+相应的解释：
+    CV_LOAD_IMAGE_UNCHANGED，这个标识在新版本中被废置了，忽略。
+    CV_LOAD_IMAGE_ANYDEPTH- 如果取这个标识的话，若载入的图像的深度为16位或者32位，就返回对应深度的图像，否则，就转换为8位图像再返回。
+    CV_LOAD_IMAGE_COLOR- 如果取这个标识的话，总是转换图像到彩色一体
+    CV_LOAD_IMAGE_GRAYSCALE- 如果取这个标识的话，始终将图像转换成灰度1
+如果输入有冲突的标志，将采用较小的数字值。比如CV_LOAD_IMAGE_COLOR | CV_LOAD_IMAGE_ANYCOLOR 将载入3通道图。
+如果想要载入最真实的图像，选择CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR。
+因为flags是int型的变量，如果我们不在这个枚举体中取值的话，还可以这样来：
+    flags >0返回一个3通道的彩色图像。
+    flags =0返回灰度图像。
+    flags <0返回包含Alpha通道的加载的图像。
+需要注意的点：输出的图像默认情况下是不载入Alpha通道进来的。如果我们需要载入Alpha通道的话呢，这里就需要取负值。
+如果你搞怪，flags取1999，也是可以的，这时就表示返回一个3通道的彩色图像。
+
+4、namedWindow函数
+namedWindow函数，用于创建一个窗口。
+void namedWindow(const string& winname,int flags=WINDOW_AUTOSIZE ); 
+		第一个参数，const string&型的name，即填被用作窗口的标识符的窗口名称。
+        第二个参数，int 类型的flags ，窗口的标识，可以填如下的值：
+        WINDOW_NORMAL设置了这个值，用户便可以改变窗口的大小（没有限制）
+        WINDOW_AUTOSIZE如果设置了这个值，窗口大小会自动调整以适应所显示的图像，并且不能手动改变窗口大小。
+        WINDOW_OPENGL 如果设置了这个值的话，窗口创建的时候便会支持OpenGL。
+函数剖析：
+首先需要注意的是，它有默认值WINDOW_AUTOSIZE，所以，一般情况下，这个函数我们填一个变量就行了。
+namedWindow函数的作用是，通过指定的名字，创建一个可以作为图像和进度条的容器窗口。如果具有相同名称的窗口已经存在，则函数不做任何事情。
+我们可以调用destroyWindow()或者destroyAllWindows()函数来关闭窗口，并取消之前分配的与窗口相关的所有内存空间。
+但话是这样说，其实对于代码量不大的简单小程序来说，我们完全没有必要手动调用上述的destroyWindow()或者destroyAllWindows()函数，
+因为在退出时，所有的资源和应用程序的窗口会被操作系统会自动关闭。
+
+5、imshow函数
+    void imshow(const string& winname, InputArray mat);  
+	第一个参数，const string&类型的winname，填需要显示的窗口标识名称。
+	第二个参数，InputArray 类型的mat，填需要显示的图像。
+
+imshow 函数详解：
+imshow 函数用于在指定的窗口中显示图像。如果窗口是用CV_WINDOW_AUTOSIZE（默认值）标志创建的，那么显示图像原始大小。
+否则，将图像进行缩放以适合窗口。而imshow 函数缩放图像，取决于图像的深度：
+	如果载入的图像是8位无符号类型（8-bit unsigned），就显示图像本来的样子。
+	如果图像是16位无符号类型（16-bit unsigned）或32位整型（32-bit integer），便用像素值除以256。也就是说，值的范围是[0,255 x 256]映射到[0,255]。
+	如果图像是32位浮点型（32-bit floating-point），像素值便要乘以255。也就是说，该值的范围是[0,1]映射到[0,255]。
+还有一点，若窗口创建（namedWindow函数）的时候，如果设定了支持OpenGL（WINDOW_OPENGL ），那么imshow还支持ogl::Buffer ,ogl::Texture2D以及gpu::GpuMat作为输入。
+
+6、imwrite函数
+输出图像到文件
+bool imwrite(const string& filename,InputArray img, const vector<int>& params=vector<int>() ); 
+     第一个参数，const string&类型的filename，填需要写入的文件名就行了，带上后缀，比如，“123.jpg”这样。
+     第二个参数，InputArray类型的img，一般填一个Mat类型的图像数据就行了。
+     第三个参数，const vector<int>&类型的params，表示为特定格式保存的参数编码，它有默认值vector<int>()，所以一般情况下不需要填写。
+	 而如果要填写的话，有下面这些需要了解的地方：
+        对于JPEG格式的图片，这个参数表示从0到100的图片质量（CV_IMWRITE_JPEG_QUALITY），默认值是95.
+        对于PNG格式的图片，这个参数表示压缩级别（CV_IMWRITE_PNG_COMPRESSION）从0到9。较高的值意味着更小的尺寸和更长的压缩时间，而默认值是3。
+        对于PPM，PGM，或PBM格式的图片，这个参数表示一个二进制格式标志（CV_IMWRITE_PXM_BINARY），取值为0或1，而默认值是1。
+函数解析：
+imwrite函数用于将图像保存到指定的文件。图像格式是基于文件扩展名的，可保存的扩展名和imread中可以读取的图像扩展名一样，
+
+例程：
+    //-----------------------------------【程序说明】----------------------------------------------  
+    //  程序名称:：【OpenCV入门教程之三】图像的载入，显示与输出 一站式完全解析 博文配套源码  
+    // VS2010版   OpenCV版本：2.4.8  
+    //      2014年3月5日 Create by 浅墨  
+    //  描述： 图像的载入，显示与输出 一站式剖析   配套源码  
+    //  图片素材出处：dota2原画圣堂刺客 dota2 logo  动漫人物  
+    //------------------------------------------------------------------------------------------------  
+       
+       
+    #include<opencv2/core/core.hpp>  
+    #include<opencv2/highgui/highgui.hpp>  
+       
+    using namespace cv;  
+       
+       
+    int main( )  
+    {  
+    //-----------------------------------【一、图像的载入和显示】--------------------------------------  
+    //     描述：以下三行代码用于完成图像的载入和显示  
+    //--------------------------------------------------------------------------------------------------  
+       
+    Mat girl=imread("girl.jpg"); //载入图像到Mat  
+    namedWindow("【1】动漫图"); //创建一个名为 "【1】动漫图"的窗口   
+    imshow("【1】动漫图",girl);//显示名为 "【1】动漫图"的窗口   
+       
+    //-----------------------------------【二、初级图像混合】--------------------------------------  
+    //     描述：二、初级图像混合  
+    //-----------------------------------------------------------------------------------------------  
+    //载入图片  
+    Mat image= imread("dota.jpg",199);  
+    Mat logo= imread("dota_logo.jpg");  
+       
+    //载入后先显示  
+    namedWindow("【2】原画图");  
+    imshow("【2】原画图",image);  
+       
+    namedWindow("【3】logo图");  
+    imshow("【3】logo图",logo);  
+       
+    //定义一个Mat类型，用于存放，图像的ROI  
+    Mat imageROI;  
+    //方法一  
+    imageROI=image(Rect(800,350,logo.cols,logo.rows));  
+    //方法二  
+    //imageROI=image(Range(350,350+logo.rows),Range(800,800+logo.cols));  
+       
+    //将logo加到原图上  
+    addWeighted(imageROI,0.5,logo,0.3,0.,imageROI);  
+       
+    //显示结果  
+    namedWindow("【4】原画+logo图");  
+    imshow("【4】原画+logo图",image);  
+       
+    //-----------------------------------【三、图像的输出】--------------------------------------  
+    //     描述：将一个Mat图像输出到图像文件  
+    //-----------------------------------------------------------------------------------------------  
+    //输出一张jpg图片到工程目录下  
+    imwrite("我喜欢打dota2 by浅墨.jpg",image);  
+       
+    waitKey();  
+       
+    return 0;  
+    }  
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+day 2
+
+1、设定感兴趣区域——ROI（region of interest）
+从图像中选择的一个图像区域，这个区域是我们图像分析所关注的重点。我们圈定这个区域，以便进行进一步处理。使用ROI指定我们想读入的目标，可以减少处理时间，增加精度。
+定义ROI区域定义的两种方法
+	第一种是使用cv:Rect.顾名思义，cv::Rect表示一个矩形区域。（矩形 rectangle）
+指定矩形的左上角坐标（构造函数的前两个参数）和矩形的长宽（构造函数的后两个参数）就可以定义一个矩形区域。
+    //定义一个Mat类型并给其设定ROI区域  
+    Mat imageROI;  
+    //方法一  
+    imageROI=image(Rect(500,250,logo.cols,logo.rows));  
+	另一种定义ROI的方式是指定感兴趣行或列的范围（Range）。Range是指从起始索引到终止索引（不包括终止索引）的一连段连续序列。
+cv::Range可以用来定义Range。如果使用cv::Range来定义ROI，那么前例中定义ROI的代码可以重写为：
+    //方法二  
+    imageROI=image(Range(250,250+logoImage.rows),Range(200,200+logoImage.cols));  
+
+2、初级图像混合——线性混合操作-----addWeighted函数
+线性混合操作是一种典型的二元（两个输入）的像素操作，它的理论公式是这样的：g(x) = (1-a)f0(x)+af1(x)
+通过在范围0到1之间改变alpha值，来对两幅图像（f0（x）和f1（x））或两段视频（同样为（f0（x）和f1（x））产生时间上的画面叠化（cross-dissolve）效果，
+就像幻灯片放映和电影制作中的那样。即在幻灯片翻页时设置的前后页缓慢过渡叠加效果，以及电影情节过渡时经常出现的画面叠加效果。
+addWeighted函数的作用是，计算两个数组（图像阵列）的加权和。
+void addWeighted(InputArray src1, double alpha, InputArray src2, double beta, double gamma, OutputArray dst, int dtype=-1); 
+    第一个参数，InputArray类型的src1，表示需要加权的第一个数组，常常填一个Mat。
+    第二个参数，alpha，表示第一个数组的权重
+    第三个参数，src2，表示第二个数组，它需要和第一个数组拥有相同的尺寸和通道数。
+    第四个参数，beta，表示第二个数组的权重值。
+    第五个参数，dst，输出的数组，它和输入的两个数组拥有相同的尺寸和通道数。
+    第六个参数，gamma，一个加到权重总和上的标量值。看下面的式子自然会理解。
+    第七个参数，dtype，输出阵列的可选深度，有默认值-1。;当两个输入数组具有相同的深度时，这个参数设置为-1（默认值），即等同于src1.depth（）。
+用数学公式来表达，addWeighted函数计算如下两个数组（src1和src2）的加权和，得到结果输出给第四个参数。即addWeighted函数的作用可以被表示为为如下的矩阵表达式为：
+    dst = src1[I]*alpha+ src2[I]*beta + gamma;
+其中的I，是多维数组元素的索引值。而且，在遇到多通道数组的时候，每个通道都需要独立地进行处理。
+另外需要注意的是，当输出数组的深度为CV_32S时，这个函数就不适用了，这时候就会内存溢出或者算出的结果压根不对
+
+3、分离颜色通道----split和merge方法
+通道分离的split函数，将一个多通道数组分离成几个单通道数组。ps：这里的array按语境译为数组或者阵列
+    C++: void split(const Mat& src, Mat*mvbegin);  
+    C++: void split(InputArray m,OutputArrayOfArrays mv);  
+	第一个参数，InputArray类型的m或者const Mat&类型的src，填我们需要进行分离的多通道数组。
+    第二个参数，OutputArrayOfArrays类型的mv，填函数的输出数组或者输出的vector容器。
+	split函数分割多通道数组转换成独立的单通道数组。
+merge()函数将多个数组组合合并成一个多通道的数组。
+它通过组合一些给定的单通道数组，将这些孤立的单通道数组合并成一个多通道的数组，从而创建出一个由多个单通道阵列组成的多通道阵列。
+    C++: void merge(const Mat* mv, size_tcount, OutputArray dst)  
+    C++: void merge(InputArrayOfArrays mv,OutputArray dst)  
+	第一个参数，mv，填需要被合并的输入矩阵或vector容器的阵列，这个mv参数中所有的矩阵必须有着一样的尺寸和深度。
+    第二个参数，count，当mv为一个空白的C数组时，代表输入矩阵的个数，这个参数显然必须大于1.
+    第三个参数，dst，即输出矩阵，和mv[0]拥有一样的尺寸和深度，并且通道的数量是矩阵阵列中的通道的总数。
+函数解析：
+merge函数的功能是将一些数组合并成一个多通道的数组。关于组合的细节，输出矩阵中的每个元素都将是输出数组的串接，其中，
+第i个输入数组的元素被视为mv[i]。 c一般用其中的Mat::at（）方法对某个通道进行存取,也就是这样用channels.at(0)。
+PS: Mat::at（）方法，返回一个引用到指定的数组元素。注意是引用，相当于两者等价，修改其中一个另一个跟着变。
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+day 3
+1、OpenCV中轨迹条（Trackbar）的创建和使用
+createTrackbar函数，它创建一个可以调整数值的轨迹条，并将轨迹条附加到指定的窗口上，使用起来很方便。它往往会和一个回调函数配合起来使用。
+    C++: int createTrackbar(conststring& trackbarname, conststring& winname,  
+     int* value, int count, TrackbarCallback onChange=0,void* userdata=0);  
+    第一个参数，const string&类型的trackbarname，表示轨迹条的名字，用来代表我们创建的轨迹条。
+    第二个参数，const string&类型的winname，填窗口的名字，表示这个轨迹条会依附到哪个窗口上，即对应namedWindow（）创建窗口时填的某一个窗口名。
+    第三个参数，int* 类型的value，一个指向整型的指针，表示滑块的位置。并且在创建时，滑块的初始位置就是该变量当前的值。
+    第四个参数，int类型的count，表示滑块可以达到的最大位置的值。PS:滑块最小的位置的值始终为0。
+    第五个参数，TrackbarCallback类型的onChange，首先注意他有默认值0。这是一个指向回调函数的指针，每次滑块位置改变时，这个函数都会进行回调。	并且这个函数的原型必须为void
+	XXXX(int,void*);其中第一个参数是轨迹条的位置，第二个参数是用户数据（看下面的第六个参数）。如果回调是NULL指针，表示没有回调函数的调用，仅第三个参数value有变化。
+    第六个参数，void*类型的userdata，他也有默认值0。这个参数是用户传给回调函数的数据，用来处理轨迹条事件。	如果使用的第三个参数value实参是全局变量的话，
+	完全可以不去管这个userdata参数。
+这个createTrackbar函数，为我们创建一个具有特定名称和范围的轨迹条（Trackbar，或者说是滑块范围控制工具），指定一个和轨迹条位置同步的变量。
+而且要指定回调函数onChange（第五个参数），在轨迹条位置改变的时候来调用这个回调函数。并且我们知道，创建的轨迹条显示在指定的winname（第二个参数）所代表的窗口上。
+	获取当前轨迹条的位置——getTrackbarPos函数
+函数用于获取当前轨迹条的位置并返回。
+    C++: int getTrackbarPos(conststring& trackbarname, conststring& winname);
+    第一个参数，const string&类型的trackbarname，表示轨迹条的名字。
+    第二个参数，const string&类型的winname，表示轨迹条的父窗口的名称。	
+
+2、亮度和对比度调整的理论依据
+一般的图像处理算子都是一个函数，它接受一个或多个输入图像，并产生输出图像
+g(x)=h(f(x))或者g(x)=h(f0(x)...fn(x))
+属于图像处理变换中比较简单的一种——点操作（pointoperators）。点操作有一个特点，仅仅根据输入像素值（有时可加上某些全局信息或参数），来计算相应的输出像素值。
+这类算子包括亮度（brightness）和对比度（contrast）调整，以及颜色校正（colorcorrection）和变换（transformations）。
+最两种常用的点操作（或者说点算子），很显然，是乘上一个常数（对应对比度的调节）以及加上一个常数（对应亮度值的调节）。
+	g(x)=a*f(x)+b
+    参数f(x)表示源图像像素。
+    参数g(x) 表示输出图像像素。
+    参数a（需要满足a>0）被称为增益（gain），常常被用来控制图像的对比度。
+    参数b通常被称为偏置（bias），常常被用来控制图像的亮度。
+	g(i,j)=a*f(i,j)+b
+	其中，i 和 j 表示像素位于第i行 和 第j列 。
+那么，这个式子就可以用来作为我们在OpenCV中控制图像的亮度和对比度的理论公式了。
+
+3、关于访问图片中的像素
+为了执行g(i,j)=a*f(i,j)+b这个运算  ，我们需要访问图像的每一个像素。因为是对GBR图像进行运算，每个像素有三个值（G、B、R），
+所以我们必须分别访问它们（PS:OpenCV中的图像存储模式为GBR）。以下是访问像素的代码片段，三个for循环解决问题：
+    //三个for循环，执行运算 new_image(i,j) =a*image(i,j) + b  
+    for(int y = 0; y < image.rows; y++ )  
+    {  
+           for(int x = 0; x < image.cols; x++ )  
+           {  
+                  for(int c = 0; c < 3; c++ )  
+                  {  
+                         new_image.at<Vec3b>(y,x)[c]= saturate_cast<uchar>( (g_nContrastValue*0.01)*(image.at<Vec3b>(y,x)[c] ) + g_nBrightValue );  
+                  }  
+           }  
+    }  
+为了访问图像的每一个像素，我们使用这样的语法： image.at<Vec3b>(y,x)[c]	
+	其中，y是像素所在的行， x是像素所在的列， c是R、G、B（对应0、1、2）其中之一。
+因为我们的运算结果可能超出像素取值范围（溢出），还可能是非整数（如果是浮点数的话），所以我们要用saturate_cast对结果进行转换，以确保它为有效值。
+这里的a也就是对比度，一般为了观察的效果，取值为0.0到3.0的浮点值，但是我们的轨迹条一般取值都会整数，所以在这里我们可以，
+将其代表对比度值的nContrastValue参数设为0到300之间的整型，在最后的式子中乘以一个0.01，这样就可以完成轨迹条中300个不同取值的变化。
+所以在式子中，我们会看到saturate_cast<uchar>( (g_nContrastValue*0.01)*(image.at<Vec3b>(y,x)[c] ) + g_nBrightValue )中的g_nContrastValue*0.01。
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+day4
+线性邻域滤波专场：方框滤波、均值滤波与高斯滤波 
+一、理论与概念
+1、关于平滑处理
+“平滑处理“（smoothing）也称“模糊处理”（bluring），是一项简单且使用频率很高的图像处理方法。平滑处理的用途有很多，最常见的是用来减少图像上的噪点或者失真。
+在涉及到降低图像分辨率时，平滑处理是非常好用的方法。
+2、图像录播与滤波器
+图像滤波，即在尽量保留图像细节特征的条件下对目标图像的噪声进行抑制，是图像预处理中不可缺少的操作，
+其处理效果的好坏将直接影响到后续图像处理和分析的有效性和可靠性。
+消除图像中的噪声成分叫作图像的平滑化或滤波操作。信号或图像的能量大部分集中在幅度谱的低频和中频段是很常见的，而在较高频段，感兴趣的信息经常被噪声淹没。
+因此一个能降低高频成分幅度的滤波器就能够减弱噪声的影响。
+	图像滤波的目的有两个:一是抽出对象的特征作为图像识别的特征模式;另一个是为适应图像处理的要求，消除图像数字化时所混入的噪声。
+而对滤波处理的要求也有两条:一是不能损坏图像的轮廓及边缘等重要信息;二是使图像清晰视觉效果好。
+平滑滤波是低频增强的空间域滤波技术。它的目的有两类：一类是模糊；另一类是消除噪音。（各种“两"，：））
+	空间域的平滑滤波一般采用简单平均法进行，就是求邻近像元点的平均亮度值。邻域的大小与平滑的效果直接相关，邻域越大平滑的效果越好，但邻域过大，
+平滑会使边缘信息损失的越大，从而使输出的图像变得模糊，因此需合理选择邻域的大小。
+关于滤波器，一种形象的比喻法是：我们可以把滤波器想象成一个包含加权系数的窗口，当使用这个滤波器平滑处理图像时，就把这个窗口放到图像之上，透过这个窗口来看我们得到的图像。
+    滤波器的种类有很多， 在新版本的OpenCV中，提供了如下五种常用的图像平滑处理操作方法，且他们分别被封装在单独的函数中，使用起来非常方便：
+            方框滤波——boxblur函数
+            均值滤波（邻域平均滤波）——blur函数
+            高斯滤波——GaussianBlur函数
+            中值滤波——medianBlur函数
+            双边滤波——bilateralFilter函数
+3、对线性滤波器的简介
+线性滤波器：线性滤波器经常用于剔除输入信号中不想要的频率或者从许多频率中选择一个想要的频率。
+几种常见的线性滤波器：
+    允许低频率通过的低通滤波器。
+    允许高频率通过的高通滤波器。
+    允许一定范围频率通过的带通滤波器。
+    阻止一定范围频率通过并且允许其它频率通过的带阻滤波器。
+    允许所有频率通过、仅仅改变相位关系的全通滤波器。
+    阻止一个狭窄频率范围通过的特殊带阻滤波器，陷波滤波器（Band-stop filter）。
+是不是模糊，要看是高斯低通还是高斯高通，低通就是模糊，高通就是锐化。
+4、领域算子与线性领域滤波
+邻域算子（局部算子）是利用给定像素周围的像素值的决定此像素的最终输出值的一种算子。而线性邻域滤波是一种常用的邻域算子，像素的输出值取决于输入像素的加权和，具体过程如下图。
+邻域算子除了用于局部色调调整以外，还可以用于图像滤波，实现图像的平滑和锐化，图像边缘增强或者图像噪声的去除。本篇文章，我们介绍的主角是线性邻域滤波算子，
+即用不同的权重去结合一个小邻域内的像素，来得到应有的处理效果。
+5、方框滤波（box Filter）
+方框滤波（box Filter）被封装在一个名为boxblur的函数中，即boxblur函数的作用是使用方框滤波器（box filter）来模糊一张图片，从src输入，从dst输出。
+C++: void boxFilter(InputArray src,OutputArray dst, int ddepth, Size ksize, Point anchor=Point(-1,-1), boolnormalize=true, int borderType=BORDER_DEFAULT )  
+参数详解：
+
+    第一个参数，InputArray类型的src，输入图像，即源图像，填Mat类的对象即可。该函数对通道是独立处理的，且可以处理任意通道数的图片，但需要注意，
+	待处理的图片深度应该为CV_8U, CV_16U, CV_16S, CV_32F 以及 CV_64F之一。
+    第二个参数，OutputArray类型的dst，即目标图像，需要和源图片有一样的尺寸和类型。
+    第三个参数，int类型的ddepth，输出图像的深度，-1代表使用原图深度，即src.depth()。
+    第四个参数，Size类型（对Size类型稍后有讲解）的ksize，内核的大小。一般这样写Size( w,h )来表示内核的大小( 其中，w 为像素宽度， h为像素高度)。Size（3,3）就表示3x3的核大小，Size（5,5）就表示5x5的核大小
+    第五个参数，Point类型的anchor，表示锚点（即被平滑的那个点），注意他有默认值Point(-1,-1)。如果这个点坐标是负值的话，就表示取核的中心为锚点，所以默认值Point(-1,-1)表示这个锚点在核的中心。
+    第六个参数，bool类型的normalize，默认值为true，一个标识符，表示内核是否被其区域归一化（normalized）了。
+    第七个参数，int类型的borderType，用于推断图像外部像素的某种边界模式。有默认值BORDER_DEFAULT，我们一般不去管它。
+其中f表示原图，h表示核，g表示目标图，当normalize=true的时候，方框滤波就变成了我们熟悉的均值滤波。也就是说，均值滤波是方框滤波归一化（normalized）后的特殊情况。
+其中，归一化就是把要处理的量都缩放到一个范围内,比如(0,1)，以便统一处理和直观量化。
+而非归一化（Unnormalized）的方框滤波用于计算每个像素邻域内的积分特性，比如密集光流算法（dense optical flow algorithms）中用到的图像倒数的协方差矩阵
+（covariance matrices of image derivatives）如果我们要在可变的窗口中计算像素总和，可以使用integral()函数。
+
+
+
+
+
+
+
+
+
+
+
+
+
